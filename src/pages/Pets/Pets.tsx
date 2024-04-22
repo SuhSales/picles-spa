@@ -7,12 +7,13 @@ import { Pagination } from "../../components/common/Pagination";
 import { useSearchParams } from "react-router-dom";
 import { usePetList } from "../../hooks/usePetsList";
 import { Select } from "../../components/common/Select";
-import { Button } from "../../components/common/Button";
+import { Button, ButtonVariant } from "../../components/common/Button";
 import { filterColumns } from "./Pets.constant";
-import { FormEvent } from "react";
+import { ChangeEvent, FormEvent, useState } from "react";
 import { GetPetsRequest } from "../../interfaces/pet";
 
 export function Pets() {
+    const [isButtonEnable, setIsButtonEnable] = useState(false)
     const [searchParams, setSearchParams] = useSearchParams()
 
     const urlParams = {
@@ -23,6 +24,19 @@ export function Pets() {
     }
 
     const { data, isLoading } = usePetList(urlParams)
+
+    function checkButtonStatus(event: ChangeEvent<HTMLFormElement>) {
+        const {type, size, gender} = getFormValue(event.target.form)
+
+        if(type !== urlParams.type || 
+           size !== urlParams.size ||
+        gender !== urlParams.gender
+    ) {
+        setIsButtonEnable(true)
+    } else {
+        setIsButtonEnable(false)
+    }
+}   
 
     function changePage(page: number) {
         setSearchParams((params) => {
@@ -57,6 +71,7 @@ export function Pets() {
         const newSearchParams = updateSearchParams(formValues)
     
         setSearchParams(newSearchParams)
+        setIsButtonEnable(false)
       }
 
     return (
@@ -64,7 +79,7 @@ export function Pets() {
             <div className={styles.container}>
                 <Header />
 
-                <form className={styles.filters} onSubmit={applyFilters}> 
+                <form className={styles.filters} onSubmit={applyFilters} onChange={checkButtonStatus}> 
                     <div className={styles.columns}>
                         {filterColumns.map((filter) =>(
                             <div key={filter.name} className={styles.colum}>
@@ -77,7 +92,13 @@ export function Pets() {
                                 </div>
                         ))}
                     </div>
-                    <Button type="submit">Buscar</Button>
+                    <Button type="submit"
+                    variant={
+                        isButtonEnable ? ButtonVariant.Default : ButtonVariant.Disable
+                    }
+                   >
+                        Buscar
+                    </Button>
                 </form>
 
                 {isLoading && (
